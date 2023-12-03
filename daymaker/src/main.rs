@@ -1,6 +1,7 @@
 use chrono::Datelike;
 use std::env;
 use std::fs;
+use std::process::Command;
 
 fn main() {
     dotenv::dotenv().ok();
@@ -48,9 +49,9 @@ fn main() {
     }
 
     // write other day files
+    let template_path = "./days/template";
+    let main_rs_path = format!("{template_path}/src/main.rs");
     {
-        let template_path = "./days/template";
-
         let cargo_toml_contents = fs::read_to_string(format!("{template_path}/Cargo.toml"))
             .expect("Should have been able to read the file");
 
@@ -62,11 +63,8 @@ fn main() {
         .expect("unable to write Cargo.toml");
 
         // main.rs
-        fs::copy(
-            format!("{template_path}/src/main.rs"),
-            format!("{day_path}/src/main.rs"),
-        )
-        .expect("Unable to write main.rs");
+        fs::copy(main_rs_path.clone(), format!("{day_path}/src/main.rs"))
+            .expect("Unable to write main.rs");
 
         // example.txt
         fs::write(format!("{day_path}/src/example.txt"), "123")
@@ -81,4 +79,9 @@ fn main() {
 
     let run_command = format!("run with 'cargo run --release --package day{day}'");
     dbg!(run_command);
+
+    Command::new("code")
+        .args([main_rs_path])
+        .output()
+        .expect("");
 }
